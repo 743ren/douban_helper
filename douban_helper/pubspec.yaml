@@ -39,6 +39,8 @@ dependencies:
     git:
       url: git@github.com:743ren/html_getter.git
   html: ^0.15.4
+  save_file:
+    path: ../save_file
 
 dev_dependencies:
   flutter_test:

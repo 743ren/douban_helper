@@ -1,3 +1,4 @@
+import 'package:douban_helper/base.dart';
 import 'package:flutter/material.dart';
 import 'package:html_getter/html_getter.dart';
 
@@ -64,17 +65,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           ElevatedButton(
             onPressed: () async {
-              var html = await HttpGetter.request(_textEditingController.text);
-              if (html != null) {
-                setState(() {
-                  result = '获取到html';
-                });
-                htmlParse(_textEditingController.text, html);
-              } else {
-                setState(() {
-                  result = '获取html失败';
-                });
-              }
+              parseUlr(_textEditingController.text);
             },
             child: const Text('加载'),
           ),

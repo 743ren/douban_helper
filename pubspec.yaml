@@ -36,7 +36,10 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   html_getter:
+    # git:
+    #   url: git@github.com:743ren/html_getter.git
     path: ../html_getter
+  html: ^0.15.4
 
 dev_dependencies:
   flutter_test:

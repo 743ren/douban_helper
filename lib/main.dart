@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:html_getter/html_getter.dart';
 
+import 'html_parser.dart';
 import 'lang.dart';
 
 void main() {
@@ -39,7 +40,8 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    _textEditingController.text = 'https://book.douban.com/subject/36331624/';
+    // _textEditingController.text = 'https://book.douban.com/subject/36331624/';
+    _textEditingController.text = 'https://www.douban.com/doulist/159546658/';
   }
 
   @override
@@ -60,24 +62,23 @@ class _MyHomePageState extends State<MyHomePage> {
           TextField(
             controller: _textEditingController,
           ),
-          ElevatedButton(onPressed: () {
-            HttpGetter.request(_textEditingController.text, (data) {
-              if (data != null) {
+          ElevatedButton(
+            onPressed: () async {
+              var html = await HttpGetter.request(_textEditingController.text);
+              if (html != null) {
                 setState(() {
-                  if (data.length > 400) {
-                    result = data.substring(0, 400);
-                  } else {
-                    result = data;
-                  }
+                  result = '获取到html';
                 });
+                htmlParse(_textEditingController.text, html);
               } else {
                 setState(() {
-                  result = '加载失败';
+                  result = '获取html失败';
                 });
               }
-            });
-          }, child: const Text('加载')),
-          Text(result??'', style: Theme.of(context).textTheme.bodyMedium,)
+            },
+            child: const Text('加载'),
+          ),
+          Text(result, style: Theme.of(context).textTheme.bodyMedium,)
         ],
       ),
     );

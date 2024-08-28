@@ -2,7 +2,6 @@ import 'package:douban_helper/base.dart';
 import 'package:flutter/material.dart';
 import 'package:html_getter/html_getter.dart';
 
-import 'html_parser.dart';
 import 'lang.dart';
 
 void main() {

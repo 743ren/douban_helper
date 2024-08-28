@@ -53,18 +53,17 @@ class Doulie {
         var tagA = title[0].getElementsByTagName('a');
         if (tagA.isNotEmpty) {
           var bookUrl = tagA[0].attributes['href'];
-          var book = await Book(bookUrl!).parseUrl();
-          if (book != null) {
-            counter++;
-            print('---$name $counter');
-            print('《${book.title}》获取成功');
-            var dirName = tag ?? name;
-            if (dirName != null && book.title != null) {
-              await save2Md(dirName, book.title!, (sink) async {
-                book.write(sink, tag);
-              });
-              print('《${book.title}》写入文件成功');
-            }
+          var book = Book(bookUrl!);
+          book.parseUrl();
+          counter++;
+          print('---$name $counter');
+          print('《${book.title}》获取成功');
+          var dirName = tag ?? name;
+          if (dirName != null && book.title != null) {
+            await save2Md(dirName, book.title!, (sink) async =>
+              book.write(sink, tag)
+            );
+            print('《${book.title}》写入文件成功');
           }
         }
       }

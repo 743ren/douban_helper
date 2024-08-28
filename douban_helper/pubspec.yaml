@@ -41,6 +41,7 @@ dependencies:
   html: ^0.15.4
   save_file:
     path: ../save_file
+  flutter_langdetect: ^0.0.2
 
 dev_dependencies:
   flutter_test:

@@ -1,6 +1,9 @@
 import 'dart:io';
 
+import 'package:html/dom.dart';
+import 'package:html/parser.dart';
 import 'package:html_getter/html_getter.dart';
+import 'package:flutter_langdetect/flutter_langdetect.dart' as langdetect;
 
 class Book {
   String url;
@@ -18,20 +21,64 @@ class Book {
   Book(this.url);
 
   /// 解析一本书
-  Future<Book?> parseUrl() async {
+  void parseUrl() async {
     var html = await HttpGetter.request(url);
     if (html != null) {
-      return parseHtml(html);
+      parseHtml(html);
     }
-    return null;
   }
 
-  Book? parseHtml(String html) {
-    // TODO
-    return null;
+  void parseHtml(String html) {
+    Document document = parse(html);
+    final titleElement = document.querySelector('meta[property="og:title"]');
+    if (titleElement != null) {
+      title = titleElement.attributes['content']?.trim() ?? '';
+    }
+    final authorElement = document.querySelector('meta[property="book:author"]');
+    if (authorElement != null) {
+      author = authorElement.attributes['content']?.trim() ?? '';
+    }
+    final isbnElement = document.querySelector('meta[property="book:isbn"]');
+    if (isbnElement != null) {
+      isbn = isbnElement.attributes['content']?.trim() ?? '';
+    }
+    final imageElement = document.querySelector('meta[property="og:image"]');
+    if (imageElement != null) {
+      image = imageElement.attributes['content']?.trim() ?? '';
+    }
+    final ratingElement = document.getElementsByClassName('rating_num');
+    if (ratingElement.isNotEmpty) {
+      rating = ratingElement[0].text.trim();
+    }
+
+    for (var pl in document.getElementsByClassName('pl')) {
+      final text = pl.text.trim();
+      if (text.contains('副标题')) {
+        subTitle = pl.nextElementSibling?.text.trim();
+      }
+      if (text.contains('原作名')) {
+        originTitle = pl.nextElementSibling?.text.trim();
+      }
+      if (text.contains('出版年')) {
+        publishYear = pl.nextElementSibling?.text.trim().substring(0,4);
+      }
+      if (text.contains('页数')) {
+        pages = pl.nextElementSibling?.text.trim();
+        if (pages != null && !RegExp(r'\d+').hasMatch(pages!)) {
+          pages = null;
+        }
+      }
+      var desElement = document.querySelectorAll('#link-report > span.all.hidden > div > div > p');
+      if (desElement.isEmpty) {
+        desElement = document.querySelectorAll('#link-report > div > div > p');
+      }
+      if (desElement.isNotEmpty) {
+        description = desElement.map((e) => e.text).toList();
+      }
+    }
   }
 
-  void write(IOSink sink, String? tag) {
+  Future<void> write(IOSink sink, String? tag) async {
     sink.writeln('---');
     sink.writeln('地址: $url');
     if (image != null) {
@@ -64,8 +111,63 @@ class Book {
     } else {
       sink.writeln('tags: ');
     }
-    // TODO
+    var language = await _getLanguage();
+    if (language != null) {
+      sink.writeln('语言: [$language]');
+    }
+    sink.writeln('---\n');
+
+    if (image != null) {
+      sink.writeln('![${title}|400](${image})');
+      sink.writeln();
+    }
+    if (description != null) {
+      sink.writeln('## 简介\n');
+      for (var desc in description!) {
+        sink.writeln(desc);
+        sink.writeln();
+      }
+    }
   }
 
+  Future<String?> _getLanguage() async {
+    if (author == null) {
+      return null;
+    }
+
+    String? language;
+
+    if (RegExp(r'\[美\]|\[英\]').hasMatch(author!)) {
+      language = '英语';
+    } else if (RegExp(r'\[法\]').hasMatch(author!)) {
+      language = '法语';
+    } else if (RegExp(r'\[德\]').hasMatch(author!)) {
+      language = '德语';
+    } else if (RegExp(r'\[俄\]').hasMatch(author!)) {
+      language = '俄语';
+    } else if (RegExp(r'\[日\]').hasMatch(author!)) {
+      language = '日语';
+    } else if (RegExp(r'\[韩\]').hasMatch(author!)) {
+      language = '韩语';
+    } else {
+      if (originTitle != null) {
+        try {
+          await langdetect.initLangDetect();
+          final lan = langdetect.detect(originTitle!);
+          language = {
+              'en': '英语',
+              'fr': '法语',
+              'de': '德语',
+              'ru': '俄语',
+              'ja': '日语',
+              'ko': '韩语'
+          }[lan];
+        } catch (e) {
+          print(e);
+        }
+      }
+    }
+    return language;
+  }
 
 }

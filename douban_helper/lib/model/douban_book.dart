@@ -21,9 +21,9 @@ class Book {
   Book(this.url);
 
   /// 解析一本书
-  void parseUrl() async {
+  Future<void> parseUrl() async {
     var html = await HttpGetter.request(url);
-    if (html != null) {
+    if (html != null && html.isNotEmpty) {
       parseHtml(html);
     }
   }
@@ -50,24 +50,28 @@ class Book {
     if (ratingElement.isNotEmpty) {
       rating = ratingElement[0].text.trim();
     }
-
+    // <span class="pl">出版年:</span> 2016-6<br/>
+    // 这种格式 2016-6 没有任何标签的，html 里没有对应的方法去取
     for (var pl in document.getElementsByClassName('pl')) {
       final text = pl.text.trim();
+      final outerHtml = pl.outerHtml; // <span class="pl">出版年:</span>
+
       if (text.contains('副标题')) {
-        subTitle = pl.nextElementSibling?.text.trim();
+        subTitle = _getContent(html, outerHtml);
       }
       if (text.contains('原作名')) {
-        originTitle = pl.nextElementSibling?.text.trim();
+        originTitle = _getContent(html, outerHtml);
       }
       if (text.contains('出版年')) {
-        publishYear = pl.nextElementSibling?.text.trim().substring(0,4);
+        publishYear = _getContent(html, outerHtml).substring(0,4);
       }
       if (text.contains('页数')) {
-        pages = pl.nextElementSibling?.text.trim();
+        pages = _getContent(html, outerHtml);
         if (pages != null && !RegExp(r'\d+').hasMatch(pages!)) {
           pages = null;
         }
       }
+
       var desElement = document.querySelectorAll('#link-report > span.all.hidden > div > div > p');
       if (desElement.isEmpty) {
         desElement = document.querySelectorAll('#link-report > div > div > p');
@@ -78,24 +82,30 @@ class Book {
     }
   }
 
+  String _getContent(String html, String outerHtml) {
+    int start = html.indexOf(outerHtml);
+    int end = html.indexOf('<', start + outerHtml.length);
+    return html.substring(start + outerHtml.length, end).trim();
+  }
+
   Future<void> write(IOSink sink, String? tag) async {
     sink.writeln('---');
-    sink.writeln('地址: $url');
+    sink.writeln('地址: "$url"');
     if (image != null) {
-      sink.writeln('封面: $image');
+      sink.writeln('封面: "$image"');
     }
-    sink.writeln('书名: $title');
+    sink.writeln('书名: "$title"');
     if (subTitle != null) {
-      sink.writeln('副标题: $subTitle');
+      sink.writeln('副标题: "$subTitle"');
     }
     if (originTitle != null) {
-      sink.writeln('原作名: $originTitle');
+      sink.writeln('原作名: "$originTitle"');
     }
     if (author != null) {
-      sink.writeln('作者: $author');
+      sink.writeln('作者: "$author"');
     }
     if (isbn != null) {
-      sink.writeln('ISBN: $isbn');
+      sink.writeln('ISBN: "$isbn"');
     }
     if (rating != null) {
       sink.writeln('评分: $rating');

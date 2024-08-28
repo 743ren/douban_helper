@@ -16,12 +16,12 @@ class Doulie {
 
   Future<void> parseUrl() async {
     var html = await HttpGetter.request(firstPageUrl);
-    if (html != null) {
-      parseHtml(html);
+    if (html != null && html.isNotEmpty) {
+      await parseHtml(html);
     }
   }
 
-  void parseHtml(String html) {
+  Future<void> parseHtml(String html) async {
     var document = parse(html);
     name = document.querySelector('#content > h1 > span')?.text.trim();
 
@@ -42,10 +42,10 @@ class Doulie {
       }
     }
 
-    loadBooks(document);
+    await loadBooks(document);
   }
 
-  void loadBooks(Document document) async {
+  Future<void> loadBooks(Document document) async {
     var items = document.getElementsByClassName('doulist-item');
     for (var item in items) {
       var title = item.getElementsByClassName('title');
@@ -54,22 +54,22 @@ class Doulie {
         if (tagA.isNotEmpty) {
           var bookUrl = tagA[0].attributes['href'];
           var book = Book(bookUrl!);
-          book.parseUrl();
+          await book.parseUrl();
           counter++;
           print('---$name $counter');
           print('《${book.title}》获取成功');
           var dirName = tag ?? name;
           if (dirName != null && book.title != null) {
-            await save2Md(dirName, book.title!, (sink) async =>
+            String savePath = await save2Md(dirName, book.title!, (sink) async =>
               book.write(sink, tag)
             );
-            print('《${book.title}》写入文件成功');
+            print('${savePath} 写入文件成功');
           }
         }
       }
     }
 
-    _loadNextPageBooks(document);
+    await _loadNextPageBooks(document);
   }
 
   /// 获取豆列下一页的 url

@@ -2,7 +2,7 @@
 
 解析豆瓣书单和书籍详情导出到 Markdown 文件，同时作为 Flutter 桌面应用的学习练手程序。
 
-现在使用了 [desktop_webview_window](https://pub.dev/packages/desktop_webview_window) 库，在 Linux/Windows 需要按说明配置。
+现在使用了 [desktop_webview_window](https://pub.dev/packages/desktop_webview_window) 库，在 Linux/Windows 需要按说明配置，还没测试。
 
 - [ ] 导出文件路径可选择
 - [ ] 接状态管理，页面显示进度
@@ -12,3 +12,7 @@
 - [ ] 导出格式模板自定义
 - [ ] 如果保存遇到同名文件，谈对话框处理
 
+## 版本
+
+- 1.0.0+1
+    基于 [之前 Python 脚本](https://github.com/743ren/python_scripts/tree/main/douban) 写一个对应功能的 Flutter 版本
